@@ -14,14 +14,17 @@ contract Reports is IERC1620, Exponential, ReentrancyGuard  {
     uint256 reportCount;
 
     struct Report {
-        uint256 id;
+        uint256 streamId;
+        uint256 Id;
         string content;
     }
 
     /**
      * @notice Reports made per address.
      */
-    mapping(address => Report[]) public reports;
+    mapping(address => Report[]) private reports;
+
+    Report[] private allReports;
     
     event Reported(address by, uint256 id);
 
@@ -79,7 +82,7 @@ contract Reports is IERC1620, Exponential, ReentrancyGuard  {
     /*** Contract Logic Starts Here */
 
     constructor() public {
-        reportCount = 1;
+        reportCount = 0;
         nextStreamId = 1;
         owner = msg.sender;
     }
@@ -290,10 +293,13 @@ contract Reports is IERC1620, Exponential, ReentrancyGuard  {
      * @return The uint256 id of the newly created stream.
      */
     function createReverseStream(
+        string memory content,
         uint256 deposit,
         address tokenAddress,
         uint256 stopTime
     ) public returns (uint256) {
+        reportEvent(content);
+
         createStream(
             msg.sender,
             deposit,
@@ -508,14 +514,23 @@ contract Reports is IERC1620, Exponential, ReentrancyGuard  {
     
     function reportEvent(string memory _content) public {
         reportCount++;
+        Report memory report = Report(nextStreamId, reportCount, _content);
         reports[msg.sender].push(
-            Report(reportCount, _content)
+            report
+        );
+
+        allReports.push(
+            report
         );
 
         emit Reported(msg.sender, reportCount);
     }
 
-    function getReports() public view returns (Report[] memory){
-        return reports[msg.sender];
+    function getUserReports(address user) public view returns (Report[] memory){
+        return reports[user];
+    }
+
+    function getAllReports() public view returns (Report[] memory){
+        return allReports;
     }
 }

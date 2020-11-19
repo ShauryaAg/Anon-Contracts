@@ -6,7 +6,7 @@ module.exports = async function (deployer) {
     const reports = await Reports.deployed()
     console.log("Reports address", reports.address)
 
-    await deployer.deploy(PT, 100)
+    await deployer.deploy(PT, web3.utils.toWei("100"))
     const pt = await PT.deployed()
     console.log("PT address", pt.address)
 };
