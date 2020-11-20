@@ -14,9 +14,10 @@ contract Reports is IERC1620, Exponential, ReentrancyGuard  {
     uint256 reportCount;
 
     struct Report {
-        uint256 streamId;
         uint256 Id;
         string content;
+        uint256 amount;
+        uint256 streamId;
     }
 
     /**
@@ -516,7 +517,7 @@ contract Reports is IERC1620, Exponential, ReentrancyGuard  {
         uint256 stopTime
     ) public returns (uint256) {
         reportCount++;
-        Report memory report = Report(nextStreamId, reportCount, _content);
+        Report memory report = Report(reportCount, _content, nextStreamId, deposit);
         reports[msg.sender].push(
             report
         );
