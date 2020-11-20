@@ -18,6 +18,7 @@ contract Reports is IERC1620, Exponential, ReentrancyGuard  {
         string content;
         uint256 amount;
         uint256 streamId;
+        bool valid;
     }
 
     /**
@@ -25,9 +26,10 @@ contract Reports is IERC1620, Exponential, ReentrancyGuard  {
      */
     mapping(address => Report[]) private reports;
 
-    Report[] private allReports;
+    mapping(uint256 => Report) private allReports;
     
     event Reported(address by, uint256 id);
+    event ToggledValidity(uint256 id, bool valid);
 
        /**
      * @notice The amount of interest has been accrued per token address.
@@ -84,7 +86,7 @@ contract Reports is IERC1620, Exponential, ReentrancyGuard  {
 
     constructor() public {
         reportCount = 0;
-        nextStreamId = 1;
+        nextStreamId = 0;
         owner = msg.sender;
     }
 
@@ -516,15 +518,12 @@ contract Reports is IERC1620, Exponential, ReentrancyGuard  {
         address tokenAddress,
         uint256 stopTime
     ) public returns (uint256) {
-        reportCount++;
-        Report memory report = Report(reportCount, _content, nextStreamId, deposit);
+        Report memory report = Report(reportCount, _content, nextStreamId, deposit, true);
         reports[msg.sender].push(
             report
         );
 
-        allReports.push(
-            report
-        );
+        allReports[reportCount] = report;
 
         createReverseStream(
             deposit,
@@ -532,7 +531,20 @@ contract Reports is IERC1620, Exponential, ReentrancyGuard  {
             stopTime
         );
 
+        reportCount++;
         emit Reported(msg.sender, reportCount);
+    }
+
+    function toggleReportValidity(
+        uint256 _id
+    ) public returns (bool) {
+        Report memory _report = allReports[_id];
+        _report.valid = !_report.valid;
+        allReports[_id] = _report;
+
+        emit ToggledValidity(_id, _report.valid);
+
+        return _report.valid;
     }
 
     function getUserReports(address user) public view returns (Report[] memory){
@@ -540,6 +552,12 @@ contract Reports is IERC1620, Exponential, ReentrancyGuard  {
     }
 
     function getAllReports() public view returns (Report[] memory){
-        return allReports;
+        Report[] memory reportArr = new Report[](reportCount);
+
+        for (uint i=0; i<reportCount; i++){
+            reportArr[i] = allReports[i];
+        }
+
+        return reportArr;
     }
 }
