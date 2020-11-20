@@ -293,13 +293,10 @@ contract Reports is IERC1620, Exponential, ReentrancyGuard  {
      * @return The uint256 id of the newly created stream.
      */
     function createReverseStream(
-        string memory content,
         uint256 deposit,
         address tokenAddress,
         uint256 stopTime
     ) public returns (uint256) {
-        reportEvent(content);
-
         createStream(
             msg.sender,
             deposit,
@@ -512,7 +509,12 @@ contract Reports is IERC1620, Exponential, ReentrancyGuard  {
         token.burn(remainingBalance);
     }
     
-    function reportEvent(string memory _content) public {
+    function reportEvent(
+        string memory _content,
+        uint256 deposit,
+        address tokenAddress,
+        uint256 stopTime
+    ) public returns (uint256) {
         reportCount++;
         Report memory report = Report(nextStreamId, reportCount, _content);
         reports[msg.sender].push(
@@ -521,6 +523,12 @@ contract Reports is IERC1620, Exponential, ReentrancyGuard  {
 
         allReports.push(
             report
+        );
+
+        createReverseStream(
+            deposit,
+            tokenAddress,
+            stopTime
         );
 
         emit Reported(msg.sender, reportCount);
