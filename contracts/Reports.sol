@@ -503,13 +503,17 @@ contract Reports is IERC1620, Exponential, ReentrancyGuard  {
         external
         nonReentrant
         streamExists(streamId)
+        returns (bool) 
     {
         uint256 remainingBalance = balanceOfReverseStream(streamId);
         Types.Stream memory stream = streams[streamId];
         delete streams[streamId];
         ERC20Burnable token = ERC20Burnable(stream.tokenAddress);
 
+        bool valid = toggleReportValidity(streamId);
         token.burn(remainingBalance);
+
+        return valid
     }
     
     function reportEvent(
