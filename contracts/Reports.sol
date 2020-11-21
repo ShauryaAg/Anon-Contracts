@@ -513,7 +513,7 @@ contract Reports is IERC1620, Exponential, ReentrancyGuard  {
         bool valid = toggleReportValidity(streamId);
         token.burn(remainingBalance);
 
-        return valid
+        return valid;
     }
     
     function reportEvent(
